@@ -32,7 +32,6 @@ def createSoup(wikipedia_url):
     # Checks if the hyperlink is truely a wikipedia link
     pattern = '(https://en.wikipedia.org/wiki/).+'
     check = re.search(pattern, wikipedia_url)
-
     # If it's NOT a correct link:
     if check == None:
         print("not the right stuff man")
@@ -42,19 +41,31 @@ def createSoup(wikipedia_url):
         html = requests.get(url)
         return BeautifulSoup(html.text, 'html.parser')
 
-# Returns a soup containing every piece of content in the article
-def scrapeContentText(soup):
-    return soup.find("div", id="mw-content-text")
+# Scrapes all the content of the page (except for the "from Wikipedia.." tag)
+def scrapeContent(soup):
+    wiki_title = soup.find("h1", id="firstHeading")
+    wiki_content = soup.find("div", id="mw-content-text")
+    content_list = list()
+    content_list.append(wiki_title)
+    for tag in wiki_content:
+        content_list.append(tag)
+    return content_list
 
+# Scrapes the title of the wikipage
+def scrapeTitle(soup):
+    return soup.find("h1", id="firstHeading")
+
+# Scrapes the Introduction of the wikipage
+# TODO finish method
 def scrapeIntroduction(soup):
     # Gets everything in the introduction
-    all_content_text = scrapeContentText(soup)
+    soup = scrapeContentText(soup)
     p_h2_tags = soup.find_all(['p', 'h2'])
     printemptyspace()
     for tag in p_h2_tags:
         print(tag)
 
-
+# Scrapes the Table of Contents of the wikipage
 def scrapeTOC(soup):
     # Gets the content table (toc)
     soup_content_table = soup.find("div", id="toc")
@@ -69,7 +80,9 @@ def scrapeTOC(soup):
         content[toc_number] = toc_text
     return content
 
-# wiki_soup = createSoup(url)
+wiki_soup = createSoup(url)
 # print(scrapeTOC(wiki_soup))
 
-scrapeIntroduction(createSoup(url))
+# scrapeIntroduction(createSoup(url))
+
+print(scrapeTitle(wiki_soup))
