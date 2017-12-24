@@ -56,14 +56,35 @@ def scrapeTitle(soup):
     return soup.find("h1", id="firstHeading")
 
 # Scrapes the Introduction of the wikipage
-# TODO finish method
 def scrapeIntroduction(soup):
     # Gets everything in the introduction
-    soup = scrapeContentText(soup)
     p_h2_tags = soup.find_all(['p', 'h2'])
-    printemptyspace()
+    pattern = '(<h2>)'
+    p_introduction_list = list()
     for tag in p_h2_tags:
-        print(tag)
+        if re.search(pattern, str(tag)):
+            break
+        else:
+            p_introduction_list.append(tag)
+    return p_introduction_list
+
+def scrapeTopic(soup, topic_title):
+    p_h2_tags = soup.find_all(['p', 'h2'])
+    p_topic_list = list()
+    topic_title_found = False
+
+    for tag in p_h2_tags:
+        if topic_title_found:
+            if re.search('(<h2>)', str(tag.get_text)):
+                return p_topic_list
+            else:
+                p_topic_list.append(tag)
+        if re.search('(<h2>)', str(tag)):
+            if re.search(topic_title, str(tag.get_text)):
+                topic_title_found = True
+        else:
+            continue
+    return 0
 
 # Scrapes the Table of Contents of the wikipage
 def scrapeTOC(soup):
@@ -80,9 +101,16 @@ def scrapeTOC(soup):
         content[toc_number] = toc_text
     return content
 
+def getTagText(tag):
+    return tag.get_text()
+
 wiki_soup = createSoup(url)
 # print(scrapeTOC(wiki_soup))
 
 # scrapeIntroduction(createSoup(url))
 
 print(scrapeTitle(wiki_soup))
+print("")
+print("")
+# print(scrapeIntroduction(wiki_soup))
+print(scrapeTopic(wiki_soup, 'Geography'))
