@@ -57,7 +57,7 @@ def scrapeTitle(soup):
 
 # Scrapes the Introduction of the wikipage
 def scrapeIntroduction(soup):
-    # Gets everything in the introduction
+    # Gets all the p and h2 tags from the wiki
     p_h2_tags = soup.find_all(['p', 'h2'])
     pattern = '(<h2>)'
     p_introduction_list = list()
@@ -68,19 +68,23 @@ def scrapeIntroduction(soup):
             p_introduction_list.append(tag)
     return p_introduction_list
 
+# Scrapes all the tags after a specific title/header (h-tag)
 def scrapeTopic(soup, topic_title):
     p_h2_tags = soup.find_all(['p', 'h2'])
     p_topic_list = list()
     topic_title_found = False
-
+    # It will first identify from which h-tag onwards the scrape should start
     for tag in p_h2_tags:
         if topic_title_found:
+            # Will continue to append until a new h-tag is found
             if re.search('(<h2>)', str(tag.get_text)):
                 return p_topic_list
             else:
                 p_topic_list.append(tag)
+        # After a h-tag was found with the title, it will start appending
         if re.search('(<h2>)', str(tag)):
             if re.search(topic_title, str(tag.get_text)):
+                p_topic_list.append(tag)
                 topic_title_found = True
         else:
             continue
