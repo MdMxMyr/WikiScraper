@@ -8,8 +8,11 @@ class Scraper:
         self.wiki_soup = self.createSoup(wiki_url)
         self.wiki_title = self.getTagText(self.scrapeTitle())
         self.wiki_toc = self.scrapeTOC()
+        self.wiki_toc_contents = self.trimTOC()
 
     #TODO CHECK FOR URL VALIDITIE
+        # Check if true URL
+        # Check if topic URL #
 
     #TODO CREATE SOUP
     def createSoup(self, wiki_url):
@@ -25,6 +28,7 @@ class Scraper:
             #TODO add more detailed check later
             html = requests.get(wiki_url)
             print("Created the wiki-soup")
+            #TODO Add check if it's actually a WIKI
             return BeautifulSoup(html.text, 'html.parser')
 
     #TODO SCRAP UNNECCESSARY STUFF FROM SOUP
@@ -56,20 +60,112 @@ class Scraper:
             toc[toc_number] = toc_text
         return toc
 
+    #TODO TRUE TOC
+    def trimTOC(self):
+        wiki_toc_contents = {}
+        non_considered_topics = ['References', 'External links', 'See also']
+        for index in self.wiki_toc:
+            topic = self.wiki_toc[index]
+            if topic in non_considered_topics:
+                continue
+            else:
+                wiki_toc_contents[index] = topic
+        return wiki_toc_contents
+
     #TODO SCRAPE INTRODUCTION
     #TODO SCRAPE CONTENT
+    def scrapeTopic(self, topic_title):
+        p_h2_tags = self.wiki_soup.find_all(['p', 'h2', 'h3'])
+        p_topic_list = list()
+        topic_title_found = False
+        # It will first identify from which h-tag onwards the scrape should start
+        for tag in p_h2_tags:
+            if topic_title_found:
+                # Will continue to append until a new h-tag is found
+                if (re.search('(<h2>)', str(tag.get_text))) or (re.search('(<h3>)', str(tag.get_text))):
+                    return p_topic_list
+                else:
+                    p_topic_list.append(tag)
+            # After a h-tag was found with the title, it will start appending
+            if (re.search('(<h2>)', str(tag))) or (re.search('(<h3>)', str(tag))):
+                if re.search(topic_title, str(tag.get_text)):
+                    p_topic_list.append(tag)
+                    topic_title_found = True
+            else:
+                continue
+        return 0
 
     #TODO GET TITLE
     #TODO GET TEXT
     def getTagText(self, tag):
         return tag.get_text()
 
-    #TODO GET HYPERLINKS
+    #TODO GET HYPERLINKS FROM CONTENT
+    def getTopicWikilinks(self, topic_title):
+        tags = self.scrapeTopic(topic_title)
+        if tags:
+            wiki_href_list = list()
+            for tag in tags:
+                wiki_links = self.getTagWikilinks(tag)
+                if wiki_links:
+                    for wiki_link in wiki_links:
+                        wiki_href_list.append(wiki_link)
+            return wiki_href_list
+        # return 0 if no tags were obtained (topic title was not found)
+        else:
+            return 0
+
+    #TODO GET HYPERLINKS FROM TAG
+    def getTagWikilinks(self, tag):
+        wiki_href_list = list()
+        for link in tag.find_all('a'):
+            href = link.get('href')
+            if re.search('/wiki/', href):
+                wiki_href_list.append(href)
+        if wiki_href_list:
+            return wiki_href_list
+        else:
+            return 0
+
+    #TODO GET all
+    def getAll(self):
+        for index in self.wiki_toc_contents:
+            # print(index)
+            topic_dict = {}
+            topic = self.wiki_toc_contents[index]
+            # print(topic)
+            topic_scrape_text = self.scrapeTopic(str(topic))
+            topic_scrape_links = self.getTopicWikilinks(str(topic))
+            #Only do things with topics that contain text, not list #TODO ADD LIST SUPPORT
+            if len(topic_scrape_text) > 1:
+                topic_text_list = list()
+                for tag in topic_scrape_text:
+                    tag_text = self.getTagText(tag)
+                    topic_text_list.append(tag_text)
+            else:
+                continue
+            topic_dict = {
+                "topic_title": str(topic),
+                "topic_index": str(index),
+                "topic_text": str(' '.join(topic_text_list[1:])),
+                "topic_wiki_link": topic_scrape_links,
+            }
+            print('The topic dict:')
+            print(topic_dict)
 
     #TODO BUILD JSON
     #TODO GET JSON
 
 url = 'https://en.wikipedia.org/wiki/Winterswijk'
 scrapy = Scraper(url)
-print(scrapy.wiki_title)
-print(scrapy.wiki_toc)
+# print(scrapy.wiki_title)
+# print(scrapy.wiki_toc)
+# print(scrapy.getAll())
+print(scrapy.getAll())
+
+# for topic in scrapy.wiki_toc_contents.values():
+#     print(scrapy.scrapeTopic(topic))
+#     print("")
+#     print("")
+#
+#     print("")

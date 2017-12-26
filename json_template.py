@@ -19,13 +19,13 @@
         "contents": [
             {
                 "topic_title": "string with title",
-                "topic index": "index",
+                "topic_index": "index",
                 "topic_text": "string with all the text",
                 "topic_wiki_link": ["/wiki/link1", "/wiki/link2"]
             },
             {
                 "topic_title": "string with title",
-                "topic index": int,
+                "topic_index": int,
                 "topic_text": "string with all the text",
                 "topic_wiki_link": ["/wiki/link1", "/wiki/link2"]
             },
