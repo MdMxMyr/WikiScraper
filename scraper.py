@@ -7,6 +7,7 @@ class Scraper:
         self.wiki_url = wiki_url
         self.wiki_soup = self.createSoup(wiki_url)
         self.wiki_title = self.getTagText(self.scrapeTitle())
+        self.wiki_toc = self.scrapeTOC()
 
     #TODO CHECK FOR URL VALIDITIE
 
@@ -41,6 +42,20 @@ class Scraper:
         return self.wiki_soup.find("h1", id="firstHeading")
 
     #TODO SCRAPE TOC
+    def scrapeTOC(self):
+        # Gets the content table (toc)
+        soup_content_table = self.wiki_soup.find("div", id="toc")
+        # Gets all the <a> taggs from the toc
+        content_list = list(soup_content_table.find_all('a'))
+        # Loop over all the hyperlink-tags in the toc and create dictionary
+        toc = {}
+        for a in content_list:
+            # Get content number and text and add them to the dictionary
+            toc_number = a.find('span', {'class': 'tocnumber'}).text
+            toc_text = a.find('span', {'class': 'toctext'}).text
+            toc[toc_number] = toc_text
+        return toc
+
     #TODO SCRAPE INTRODUCTION
     #TODO SCRAPE CONTENT
 
@@ -57,3 +72,4 @@ class Scraper:
 url = 'https://en.wikipedia.org/wiki/Winterswijk'
 scrapy = Scraper(url)
 print(scrapy.wiki_title)
+print(scrapy.wiki_toc)
