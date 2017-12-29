@@ -10,6 +10,7 @@ class Scraper:
         self.wiki_toc = self.scrapeTOC()
         self.wiki_toc_contents = self.trimTOC()
         self.version = "1.0"
+        self.wiki_json = self.buildJSON()
 
     #TODO CHECK FOR URL VALIDITIE
         # Check if true URL
@@ -130,6 +131,7 @@ class Scraper:
 
     #TODO GET all
     def topicsToJSON(self):
+        topic_dict_collection = list()
         for index in self.wiki_toc_contents:
             topic_dict = {}
             topic = self.wiki_toc_contents[index]
@@ -151,28 +153,35 @@ class Scraper:
             }
             print('The topic dict:')
             print(topic_dict)
+            topic_dict_collection.append(topic_dict.copy())
             # TODO append them to the main dictionary
-        return topic_dict
+        return topic_dict_collection
 
     #TODO BUILD JSON
     def buildJSON(self):
         info = {
-            "scraped_from": self.wiki_url
+            "scraped_from": self.wiki_url,
             "scraped_at": 1, #insert timestamp
             "version": str(self.version),
         }
-        TOC_contents = self.wiki_toc
+        TOC = self.wiki_toc
         TOC_contents = self.wiki_toc_contents
-        contents = topicsToJSON()
+        contents = self.topicsToJSON()
 
-    #TODO GET JSON
+        # Build the JSON-collection for this Wiki
+        json_collection = {
+            "info": info,
+            "toc": TOC,
+            "toc_contents": TOC_contents,
+            "contents": contents,
+        }
+        return json_collection
 
 url = 'https://en.wikipedia.org/wiki/Winterswijk'
 scrapy = Scraper(url)
-# print(scrapy.wiki_title)
-# print(scrapy.wiki_toc)
-# print(scrapy.getAll())
-print(scrapy.topicsToJSON())
+
+# print(scrapy.topicsToJSON())
+print(scrapy.buildJSON())
 
 # for topic in scrapy.wiki_toc_contents.values():
 #     print(scrapy.scrapeTopic(topic))
